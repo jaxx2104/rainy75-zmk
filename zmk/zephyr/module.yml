@@ -1,0 +1,11 @@
+# Recreated: upstream rainy75-zmk did not commit this file, so the zmk/ Zephyr
+# module (board def, out-of-tree drivers, dts bindings) was invisible to Zephyr
+# and `west build` failed with "No board named 'rainy75' found".
+# Declares zmk/ as a Zephyr module: CMakeLists.txt + Kconfig + board_root + dts_root.
+name: rainy75-zmk
+build:
+  cmake: .
+  kconfig: Kconfig
+  settings:
+    board_root: .
+    dts_root: .

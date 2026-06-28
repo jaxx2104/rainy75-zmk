@@ -2,9 +2,12 @@
 build/
 build-mcuboot/
 
-# West workspace (fetched by west update)
+# West workspace (fetched by west update). NOTE: anchor zephyr/ to the repo root
+# with a leading slash, otherwise the bare `zephyr/` pattern also matches our own
+# `zmk/zephyr/` module dir and silently un-tracks zmk/zephyr/module.yml (which makes
+# `west build` fail with "No board named 'rainy75'").
 zmk-src/
-zephyr/
+/zephyr/
 modules/
 bootloader/
 .west/

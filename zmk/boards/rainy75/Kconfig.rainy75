@@ -1,5 +1,9 @@
 config BOARD_RAINY75
 	select SOC_TLSR9518
+	# Recreated: upstream's deep-sleep patch (HAS_POWEROFF for B91) was not
+	# committed, so CONFIG_ZMK_SLEEP/POWEROFF could not be satisfied. poweroff.c
+	# already provides z_sys_poweroff(); this exposes HAS_POWEROFF so it builds.
+	select HAS_POWEROFF
 
 config RAINY75_ANSI
 	bool "ANSI physical layout (UNTESTED)"

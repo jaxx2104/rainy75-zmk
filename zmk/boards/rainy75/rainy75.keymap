@@ -9,15 +9,16 @@
  * ANSI drops the ISO <> key (full-width Left-Shift) and shifts the Enter block:
  * the ISO Enter position becomes Backslash, and the ISO #~ (NUHS) position
  * becomes the wide Enter. UNVERIFIED on real ANSI hardware — see CONTRIBUTING.md. */
-#ifdef CONFIG_RAINY75_ANSI
-#define K_ENTER_TOP  &kp BSLH   /* ISO Enter (top) -> ANSI backslash */
-#define K_HASH       &kp RET    /* ISO #~ (NUHS)   -> ANSI wide Enter */
-#define K_LT_GT      &none      /* ISO <> (NUBS)   -> absent on ANSI */
-#else
-#define K_ENTER_TOP  &kp RET
-#define K_HASH       &kp NUHS
+/* This unit is ANSI. IMPORTANT: upstream's `#ifdef CONFIG_RAINY75_ANSI` never takes
+ * effect — the keymap overlay is C-preprocessed BEFORE Kconfig, so CONFIG_RAINY75_ANSI
+ * is undefined here and the ISO branch (K_HASH=NUHS) was always used. That left the
+ * physical wide-Enter dead (NUHS) and the backslash key acting as Enter. Hardcode the
+ * ANSI layout unconditionally (verified on jaxx's unit):
+ *   - end-of-QWERTY-row slot = physical BACKSLASH -> BSLH
+ *   - end-of-home-row slot    = physical wide ENTER -> RET */
+#define K_ENTER_TOP  &kp BSLH
+#define K_HASH       &kp RET
 #define K_LT_GT      &kp NUBS
-#endif
 
 / {
 	keymap {
@@ -43,9 +44,9 @@
 				&kp ESC   &kp F1   &kp F2   &kp F3  &kp F4  &kp F5  &kp F6  &kp F7  &kp F8  &kp F9    &kp F10   &kp F11   &kp F12   &kp DEL   &kp HOME
 				&kp GRAVE &kp N1   &kp N2   &kp N3  &kp N4  &kp N5  &kp N6  &kp N7  &kp N8  &kp N9    &kp N0    &kp MINUS &kp EQUAL &kp BSPC  &kp END
 				&kp TAB   &kp Q    &kp W    &kp E   &kp R   &kp T   &kp Y   &kp U   &kp I   &kp O     &kp P     &kp LBKT  &kp RBKT  K_ENTER_TOP
-				&kp CLCK  &kp A    &kp S    &kp D   &kp F   &kp G   &kp H   &kp J   &kp K   &kp L     &kp SEMI  &kp SQT   K_HASH             &kp PG_UP &kp PG_DN
+				&kp CLCK  &kp A    &kp S    &kp D   &kp F   &kp G   &kp H   &kp J   &kp K   &kp L     &kp SEMI  &kp SQT   &none   &kp RET   &kp PG_UP &kp PG_DN
 				&kp LSHFT K_LT_GT  &kp Z    &kp X   &kp C   &kp V   &kp B   &kp N   &kp M   &kp COMMA &kp DOT   &kp FSLH            &kp RSHFT &kp UP
-				&kp LCTRL &kp LGUI &kp LALT                                          &kp SPACE &kp RALT &mo 1     &kp RCTRL           &kp LEFT  &kp DOWN  &kp RIGHT
+				&kp LCTRL &kp LGUI &mt LGUI LANG2                                     &kp SPACE &kp RALT &mt RALT LANG1 &mo 1           &kp LEFT  &kp DOWN  &kp RIGHT
 			>;
 		};
 
@@ -65,7 +66,7 @@
 				&studio_unlock &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &out OUT_TOG &kp C_PREV &kp C_NEXT &kp C_MUTE &kp C_VOL_DN &kp C_VOL_UP &kp C_PP &kp C_BRI_DN &kp C_BRI_UP &bt BT_CLR &out OUT_TOG
 				&trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &rgb RGB_TOG &trans
 				&trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &rgb RGB_EFF
-				&trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &rgb RGB_HUI        &trans &trans
+				&trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &rgb RGB_HUI &trans &trans &trans
 				&trans &trans &trans &trans &trans &trans &rgb RGB_BAT &trans &trans &trans &trans &trans        &trans &rgb RGB_BRI
 				&trans &trans &trans                                          &trans &trans &trans &trans        &rgb RGB_SPD &rgb RGB_BRD &rgb RGB_SPI
 			>;

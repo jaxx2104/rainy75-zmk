@@ -7,7 +7,11 @@ manifest:
   projects:
     - name: zmk
       remote: zmkfirmware
-      revision: c7fcd91af4c5ea950ea0eb0513f89255995564cf
+      # Upstream pinned c7fcd91af4c5ea950ea0eb0513f89255995564cf, which was never
+      # published to zmkfirmware/zmk (unreachable -> west update fails). Repointed to
+      # the nearest public ZMK main commit before the rainy75-zmk release (2026-06-20),
+      # still on Zephyr v4.1.0+zmk-fixes to match SDK 0.17.0.
+      revision: 64daf698e073e37b6748ac54f4eb48d8666af0b9
       path: zmk-src
       import: app/west.yml
     - name: hal_telink
