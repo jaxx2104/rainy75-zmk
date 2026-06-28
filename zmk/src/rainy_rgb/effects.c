@@ -73,8 +73,18 @@ void fx_reactive_pulse(struct rgb_frame *f) {
 
 #define RIPPLE_RING   22      /* ring half-thickness (XY units) */
 #define RIPPLE_FADER  255     /* radius at which a ring has fully faded */
+#define RIPPLE_AMBER_HUE 24   /* warm amber ring, matches the Terrazzo orange accent */
+#define RIPPLE_WHITE_SAT 24   /* white ring saturation: 0 = pure white, higher = warmer */
 
-void fx_ripple(struct rgb_frame *f) {
+/* Shared ripple core: expanding rings from each keypress. Per-ring hue is
+ * hue_base + radius*hue_gain (gain 0 = single hue; >0 sweeps the spectrum
+ * outward). Saturation lerps with the ring's radius from sat_near (fresh, small
+ * ring at the tap) to sat_far (old, large ring) — so a low sat_near + high
+ * sat_far makes each tap flash white, then warm to a colored ring as it spreads
+ * and fades. hue/sat are constant across a ring, so both are computed once per
+ * ring (not per pixel). */
+static void ripple_draw(struct rgb_frame *f, uint8_t hue_base, uint8_t hue_gain,
+                        uint8_t sat_near, uint8_t sat_far) {
     for (uint16_t i = 0; i < f->n; i++) { f->px[i] = (struct rrgb){0, 0, 0}; }
     if (!f->xy || !f->ripples) { return; }
     /* Expansion velocity in .4 fixed point, FPS-compensated (×~0.6 vs the old
@@ -86,6 +96,8 @@ void fx_ripple(struct rgb_frame *f) {
         int radius = ((int)(f->tick - rp->start_tick) * vel_q4) >> 4;
         if (radius >= RIPPLE_FADER) { continue; }     /* faded out */
         uint8_t fade = (uint8_t)(255 - radius);       /* older/bigger = dimmer */
+        uint8_t hue = (uint8_t)(hue_base + radius * hue_gain);
+        uint8_t sat = (uint8_t)(sat_near + ((int)sat_far - (int)sat_near) * radius / RIPPLE_FADER);
         for (uint16_t i = 0; i < f->n; i++) {
             uint8_t dist = hypot8((int)f->xy[i].x - rp->x, (int)f->xy[i].y - rp->y);
             int d = (int)dist - radius;
@@ -93,7 +105,7 @@ void fx_ripple(struct rgb_frame *f) {
             if (d < RIPPLE_RING) {
                 uint8_t edge = (uint8_t)((RIPPLE_RING - d) * (255 / RIPPLE_RING));
                 uint8_t b = scale8(scale8(edge, fade), f->val);
-                struct rrgb c = hsv2rgb((uint8_t)(f->hue + radius * 2), f->sat, b);
+                struct rrgb c = hsv2rgb(hue, sat, b);
                 if (c.r > f->px[i].r) { f->px[i].r = c.r; }
                 if (c.g > f->px[i].g) { f->px[i].g = c.g; }
                 if (c.b > f->px[i].b) { f->px[i].b = c.b; }
@@ -101,6 +113,12 @@ void fx_ripple(struct rgb_frame *f) {
         }
     }
 }
+
+/* Rainbow ripple (original): base hue from the knob, sweeping outward. */
+void fx_ripple(struct rgb_frame *f)      { ripple_draw(f, f->hue, 2, f->sat, f->sat); }
+/* Warm ripple: white flash at the tap warming to an amber ring as it spreads —
+ * white + amber in one pattern. Tune with RIPPLE_WHITE_SAT / RIPPLE_AMBER_HUE. */
+void fx_ripple_warm(struct rgb_frame *f) { ripple_draw(f, RIPPLE_AMBER_HUE, 0, RIPPLE_WHITE_SAT, 255); }
 
 /* Wave: diagonal traveling sine wave across 2D XY space. */
 void fx_wave(struct rgb_frame *f) {
@@ -174,7 +192,7 @@ const struct rrgb_effect rrgb_effects[] = {
     { "comet",      fx_comet },
     { "aurora",     fx_aurora },
     { "reactive",   fx_reactive_pulse },
-    { "ripple",     fx_ripple },
+    { "ripple",     fx_ripple_warm },
     { "wave",       fx_wave },
     { "rain",       fx_rain },
     { "heatmap",    fx_heatmap },

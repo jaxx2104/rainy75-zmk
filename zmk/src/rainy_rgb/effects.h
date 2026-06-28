@@ -40,6 +40,7 @@ void fx_comet(struct rgb_frame *f);
 void fx_aurora(struct rgb_frame *f);
 void fx_reactive_pulse(struct rgb_frame *f);
 void fx_ripple(struct rgb_frame *f);
+void fx_ripple_warm(struct rgb_frame *f);
 void fx_wave(struct rgb_frame *f);
 void fx_rain(struct rgb_frame *f);
 void fx_heatmap(struct rgb_frame *f);
